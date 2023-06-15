@@ -86,6 +86,22 @@ func GetMessages(sess *session.Session, queueURL *string, timeout *int64) (*sqs.
 	return msgResult, nil
 }
 
+func DeleteMessage(sess *session.Session, queueURL *string, messageHandle *string) error {
+	// snippet-start:[sqs.go.delete_message.call]
+	svc := sqs.New(sess)
+
+	_, err := svc.DeleteMessage(&sqs.DeleteMessageInput{
+		QueueUrl:      queueURL,
+		ReceiptHandle: messageHandle,
+	})
+	// snippet-end:[sqs.go.delete_message.call]
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	// snippet-start:[sqs.go.receive_messages.args]
 	queue := flag.String("q", "test.fifo", "The name of the queue")
@@ -132,14 +148,37 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	// fmt.Println(*msgResult.Messages[0].ReceiptHandle)
+	var ReceiptHandle string = *msgResult.Messages[0].ReceiptHandle
 
-	fmt.Println(msgResult.Messages[0])
+	// fmt.Println(msgResult.Messages[0])
 
-	fmt.Println("Message ID:     " + *msgResult.Messages[0].MessageId)
+	// fmt.Println("Message ID:     " + *msgResult.Messages[0].MessageId)
 
 	// snippet-start:[sqs.go.receive_messages.print_handle]
-	fmt.Println("Message Handle: " + *msgResult.Messages[0].ReceiptHandle)
+	// fmt.Println("Message Handle: " + *msgResult.Messages[0].ReceiptHandle)
 	// snippet-end:[sqs.go.receive_messages.print_handle]
+
+	if ReceiptHandle != "" {
+		// messageHandle := flag.String("m", "AQEBU78+R/6vRukQ2Fg/wDE337CUqMwiqtsnf0BDg1oeOMv/dXWoTYGUz7td4QUmpb2+jXGc1ZRZFeNHgKAK3ZuEF2cLBwmEanBcvlpfYxk01xTtJmXZ7FTx4Ne9d1LOdUuIWWRAre8v3whGwM6CVGz5hSi15etxcQC13/ySx17o1cVmPl+9gSlid834/bqP2p9DI9Fg4JD+59xt2outqKJ92cgS5dKxxF1rnnT/qYcwLO4c7zAX/OBgbtGedB6aUn7Le13Szhz+4TAQA7iCiMh5aQ==", "The receipt handle of the message")
+
+		// var messageHandle string = new(string)
+		// messageHandle = ReceiptHandle
+		// fmt.Printf("%T", ReceiptHandle)
+		// fmt.Printf("%T", messageHandle)
+		// flag.Parse()
+
+		fmt.Println("delete Message " + *msgResult.Messages[0].ReceiptHandle)
+		DeleteMessage(sess, queueURL, &ReceiptHandle)
+
+		if err != nil {
+			fmt.Println("Got an error deleting the message:")
+			fmt.Println(err)
+			return
+		}
+
+	}
+
 }
 
 // snippet-end:[sqs.go.receive_messages]
